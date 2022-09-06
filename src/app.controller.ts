@@ -1,12 +1,14 @@
 import { Controller, Get } from '@nestjs/common';
-import { AppService } from './app.service';
+import { EventBus } from '@nestjs/cqrs';
+import { WebhookSentEvent } from './webhook-sent.event';
 
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) {}
+  constructor(private readonly eventBus: EventBus) {}
 
   @Get()
   getHello(): string {
-    return this.appService.getHello();
+    this.eventBus.publish(new WebhookSentEvent('croute', 'lol'));
+    return 'Hello World!';
   }
 }
