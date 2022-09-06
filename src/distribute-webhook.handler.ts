@@ -9,9 +9,7 @@ export class DistributeWebhookHandler
   constructor(private readonly appService: AppService) {}
 
   async execute(command: DistributeWebhookCommand) {
-    const { payload } = command;
-    console.log(payload);
-    const result = this.appService.getHello();
-    console.log('result', result);
+    console.log(command);
+    this.appService.distributeWebhook(command.target, command.payload);
   }
 }
