@@ -8,7 +8,7 @@ export class AppController {
 
   @Get()
   getHello(): string {
-    this.eventBus.publish(new WebhookSentEvent('croute', 'lol'));
+    this.eventBus.publish(new WebhookSentEvent('croute', 'lol', '123'));
     return 'Hello World!';
   }
 }

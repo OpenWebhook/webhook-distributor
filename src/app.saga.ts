@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ICommand, ofType, Saga } from '@nestjs/cqrs';
-import { debounce, interval, map, Observable } from 'rxjs';
+import { debounceTime, groupBy, map, mergeAll, Observable } from 'rxjs';
 import { DistributeWebhookCommand } from './distribute-webhook.command';
 import { WebhookSentEvent } from './webhook-sent.event';
 
@@ -10,7 +10,9 @@ export class WebhookSagas {
   webhookSent = (events$: Observable<any>): Observable<ICommand> => {
     return events$.pipe(
       ofType(WebhookSentEvent),
-      debounce(() => interval(200)),
+      groupBy((event) => event.target + event.idempotentKey),
+      map((group) => group.pipe(debounceTime(1000))),
+      mergeAll(),
       map((event) => new DistributeWebhookCommand(event.payload, event.target)),
     );
   };
