@@ -36,7 +36,7 @@ describe('WebhookSaga', () => {
       });
     });
 
-    it('Should return only one command for 2 events', () => {
+    it('Should return only one command for 2 events chained', () => {
       const events$ = of(
         new WebhookSentEvent(payload, target, idempotentKey),
         new WebhookSentEvent(payload, target, idempotentKey),
@@ -46,6 +46,24 @@ describe('WebhookSaga', () => {
         const expectedObservable = {
           a: new DistributeWebhookCommand(payload, target),
         };
+        expectObservable(saga.webhookSent(events$)).toBe(
+          expectedMarble,
+          expectedObservable,
+        );
+      });
+    });
+
+    it('Should return 2 commands for 2 events separated by more than a second', () => {
+      scheduler.run(({ cold, expectObservable }) => {
+        const inputObservable = {
+          a: new WebhookSentEvent(payload, target, idempotentKey),
+        };
+        const inputMarbles = '   a 1002ms a';
+        const expectedMarble = '1000ms a 1002ms a';
+        const expectedObservable = {
+          a: new DistributeWebhookCommand(payload, target),
+        };
+        const events$ = cold(inputMarbles, inputObservable);
         expectObservable(saga.webhookSent(events$)).toBe(
           expectedMarble,
           expectedObservable,
