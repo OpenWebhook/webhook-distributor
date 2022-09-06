@@ -38,7 +38,7 @@ describe('WebhookSaga', () => {
   describe('Debounce', () => {
     it('Should return a command', () => {
       scheduler.run(({ expectObservable, cold }) => {
-        const inputMarbles = '(a|)';
+        const inputMarbles = '  (a|)';
         const expectedMarble = '(a|)';
 
         const events$ = cold(inputMarbles, inputObservable);
@@ -51,7 +51,7 @@ describe('WebhookSaga', () => {
 
     it('Should return only one command for 2 events chained', () => {
       scheduler.run(({ expectObservable, cold }) => {
-        const inputMarbles = '(aa|)';
+        const inputMarbles = ' (aa|)';
         const expectedMarble = '(a|)';
 
         const events$ = cold(inputMarbles, inputObservable);
@@ -64,8 +64,8 @@ describe('WebhookSaga', () => {
 
     it('Should return 2 commands for 2 events separated by more than a second', () => {
       scheduler.run(({ cold, expectObservable }) => {
-        const inputMarbles = '  a      1002ms a';
-        const expectedMarble = '1000ms a      1002ms a';
+        const inputMarbles = '  a      1000ms 2ms a';
+        const expectedMarble = '1000ms a      2ms 1000ms a';
 
         const events$ = cold(inputMarbles, inputObservable);
         expectObservable(saga.webhookSent(events$)).toBe(
@@ -113,6 +113,20 @@ describe('WebhookSaga', () => {
         const expectedMarble = '1000ms ---b-c-d--a';
 
         const events$ = cold(inputMarbles, inputObservable);
+        expectObservable(saga.webhookSent(events$)).toBe(
+          expectedMarble,
+          expectedObservable,
+        );
+      });
+    });
+
+    it('Should return 4 commands for 4 events with different idempotent key and targets with a "|" completion of observable', () => {
+      scheduler.run(({ expectObservable, cold }) => {
+        const inputMarbles = '  aabbccddaaa|';
+        const expectedMarble = '-----------(abcd|)';
+
+        const events$ = cold(inputMarbles, inputObservable);
+
         expectObservable(saga.webhookSent(events$)).toBe(
           expectedMarble,
           expectedObservable,
